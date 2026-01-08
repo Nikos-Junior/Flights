@@ -1,0 +1,224 @@
+<!DOCTYPE html><html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Comprendre /proc sous Linux</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #111827;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --accent: #38bdf8;
+      --accent-soft: rgba(56,189,248,0.15);
+      --border: rgba(255,255,255,0.08);
+    }* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.7;
+  margin: 0;
+  padding: 48px 20px;
+  background: radial-gradient(circle at top, #020617, var(--bg));
+  color: var(--text);
+}
+
+h1 {
+  font-size: 2.5rem;
+  text-align: center;
+  margin-bottom: 60px;
+  letter-spacing: -0.02em;
+}
+
+h2 {
+  font-size: 1.6rem;
+  margin-bottom: 16px;
+  border-left: 4px solid var(--accent);
+  padding-left: 12px;
+}
+
+h3 {
+  font-size: 1.1rem;
+  margin-top: 28px;
+  margin-bottom: 8px;
+  color: var(--accent);
+}
+
+section {
+  max-width: 900px;
+  margin: 0 auto 40px auto;
+  background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+  padding: 28px 32px;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  backdrop-filter: blur(6px);
+}
+
+p {
+  color: var(--text);
+  margin-bottom: 12px;
+}
+
+ul, ol {
+  margin-left: 22px;
+  color: var(--muted);
+}
+
+li {
+  margin-bottom: 6px;
+}
+
+strong {
+  color: #ffffff;
+}
+
+.important {
+  margin-top: 20px;
+  background: var(--accent-soft);
+  border-left: 4px solid var(--accent);
+  padding: 16px 18px;
+  border-radius: 10px;
+  color: #e0f2fe;
+}
+
+@media (max-width: 640px) {
+  h1 {
+    font-size: 2rem;
+  }
+  section {
+    padding: 22px 20px;
+  }
+}
+
+  </style>
+</head>
+<body>  <h1>Le système de fichiers /proc sous Linux</h1>  <section>
+    <h2>1. Qu’est-ce que /proc ?</h2>
+    <p>
+      <strong>/proc</strong> est un système de fichiers virtuel fourni par le noyau Linux.
+      Il ne contient pas de fichiers stockés sur le disque. Chaque fichier représente
+      une information générée dynamiquement par le noyau.
+    </p>
+    <p>
+      Lire un fichier dans <strong>/proc</strong> revient donc à interroger directement
+      l’état interne du système d’exploitation.
+    </p>
+  </section>  <section>
+    <h2>2. Objectifs de /proc</h2>
+    <ul>
+      <li>Observer l’état du noyau en temps réel</li>
+      <li>Analyser les processus en cours d’exécution</li>
+      <li>Surveiller l’utilisation du CPU, de la mémoire et des entrées/sorties</li>
+      <li>Permettre aux outils système (top, ps, free…) de fonctionner</li>
+    </ul>
+  </section>  <section>
+    <h2>3. Organisation générale de /proc</h2><h3>3.1 Les répertoires numériques (/proc/[pid])</h3>
+<p>
+  Chaque répertoire dont le nom est un nombre correspond à un processus actif.
+  Ce nombre est le PID (Process ID).
+</p>
+<ul>
+  <li>Informations d’état du processus</li>
+  <li>Consommation CPU et mémoire</li>
+  <li>Relations parent/enfant</li>
+</ul>
+
+<h3>3.2 Les fichiers globaux</h3>
+<ul>
+  <li><strong>/proc/stat</strong> : statistiques CPU globales</li>
+  <li><strong>/proc/meminfo</strong> : état de la mémoire</li>
+  <li><strong>/proc/cpuinfo</strong> : informations matérielles CPU</li>
+  <li><strong>/proc/loadavg</strong> : charge moyenne du système</li>
+  <li><strong>/proc/uptime</strong> : temps depuis le démarrage</li>
+</ul>
+
+  </section>  <section>
+    <h2>4. Focus sur /proc/stat</h2>
+    <p>
+      <strong>/proc/stat</strong> est le fichier central pour comprendre l’utilisation
+      du processeur.
+    </p>
+    <p>
+      La première ligne commence par <strong>cpu</strong> et contient une suite de valeurs
+      numériques représentant le temps passé par le CPU dans différents états.
+    </p><h3>Types de temps CPU</h3>
+<ul>
+  <li><strong>Temps utilisateur (user)</strong> : exécution des programmes</li>
+  <li><strong>Temps système (system)</strong> : exécution du noyau</li>
+  <li><strong>Temps idle</strong> : CPU inactif</li>
+  <li><strong>Temps iowait</strong> : attente des entrées/sorties</li>
+  <li><strong>IRQ / SoftIRQ</strong> : gestion des interruptions</li>
+</ul>
+
+<div class="important">
+  Toutes ces valeurs sont <strong>cumulées depuis le démarrage</strong> de la machine.
+</div>
+
+  </section>  <section>
+    <h2>5. Notion de temps utilisateur et temps système</h2><h3>Temps utilisateur (temps utile)</h3>
+<p>
+  C’est le temps pendant lequel le CPU exécute directement le code des applications
+  (boucles, calculs, logique métier).
+</p>
+
+<h3>Temps système</h3>
+<p>
+  C’est le temps passé dans le noyau pour répondre aux demandes des programmes
+  (lecture de fichiers, accès réseau, gestion mémoire).
+</p>
+
+  </section>  <section>
+    <h2>6. Comment récupérer le temps CPU (logique)</h2><h3>6.1 Principe fondamental</h3>
+<p>
+  Les temps CPU ne sont jamais instantanés. Ce sont des compteurs qui augmentent
+  continuellement.
+</p>
+
+<h3>6.2 Méthode correcte</h3>
+<ol>
+  <li>Lire les valeurs à un instant T1</li>
+  <li>Attendre un court intervalle</li>
+  <li>Relire les valeurs à un instant T2</li>
+  <li>Calculer la différence entre T2 et T1</li>
+</ol>
+
+<p>
+  La différence représente le temps réellement consommé pendant l’intervalle.
+</p>
+
+<h3>6.3 Unité de mesure</h3>
+<p>
+  Les valeurs sont exprimées en <strong>ticks CPU</strong>.
+  Le système connaît le nombre de ticks par seconde, ce qui permet
+  de convertir ces valeurs en secondes.
+</p>
+
+  </section>  <section>
+    <h2>7. Temps CPU par processus</h2>
+    <p>
+      Pour analyser un processus spécifique, le noyau expose ses statistiques
+      dans le fichier <strong>/proc/[pid]/stat</strong>.
+    </p>
+    <ul>
+      <li>Temps utilisateur du processus</li>
+      <li>Temps système du processus</li>
+      <li>Valeurs cumulées depuis le lancement du processus</li>
+    </ul>
+    <p>
+      Là encore, seule la différence entre deux lectures permet d’obtenir
+      une mesure exploitable.
+    </p>
+  </section>  <section>
+    <h2>8. À retenir</h2>
+    <ul>
+      <li>/proc est une interface directe avec le noyau</li>
+      <li>Les fichiers sont dynamiques et non stockés</li>
+      <li>Les temps CPU sont cumulés</li>
+      <li>La notion de différence est essentielle</li>
+      <li>Le temps utilisateur correspond au travail réel des programmes</li>
+      <li>Le temps système correspond au travail du noyau</li>
+    </ul>
+  </section></body>
+</html>
